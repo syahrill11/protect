@@ -23,7 +23,7 @@ read -p "$(echo -e "${CYAN}Pilih opsi [1/2/3]: ${RESET}")" OPSI
 
 CONTROLLER_USER="/var/www/pterodactyl/app/Http/Controllers/Admin/UserController.php"
 SERVICE_SERVER="/var/www/pterodactyl/app/Services/Servers/ServerDeletionService.php"
-CONTROLLER_SERVER="/var/www/pterodactyl/app/Http/Controllers/Server/ServerController.php"
+CONTROLLER_SERVER="//var/www/pterodactyl/app/Http/Controllers/Admin/Servers/"
 
 if [ "$OPSI" = "1" ]; then
     read -p "$(echo -e "${CYAN}Masukkan User ID Admin Utama (contoh: 1): ${RESET}")" ADMIN_ID
