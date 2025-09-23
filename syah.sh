@@ -6,13 +6,13 @@ CYAN="\033[1;36m"
 YELLOW="\033[1;33m"
 RESET="\033[0m"
 BOLD="\033[1m"
-VERSION="1.4"
+VERSION="1.3"
 
 clear
 echo -e "${CYAN}${BOLD}"
 echo "╔══════════════════════════════════════════════════════╗"
-echo "║         SYAH Protect + Panel Builder                 ║"
-echo "║                    Version $VERSION                  ║"
+echo "║         SYAH Protect + Panel Builder         ║"
+echo "║                    Version $VERSION                       ║"
 echo "╚══════════════════════════════════════════════════════╝"
 echo -e "${RESET}"
 
@@ -27,44 +27,33 @@ SERVICE_SERVER="/var/www/pterodactyl/app/Services/Servers/ServerDeletionService.
 if [ "$OPSI" = "1" ]; then
     read -p "$(echo -e "${CYAN}Masukkan User ID Admin Utama (contoh: 1): ${RESET}")" ADMIN_ID
 
-    echo -e "${YELLOW}➤ Menambahkan Protect Delete & Update User...${RESET}"
+    echo -e "${YELLOW}➤ Menambahkan Protect Delete User...${RESET}"
     [ ! -f "$CONTROLLER_USER" ] && echo -e "${RED}❌ File tidak ditemukan.${RESET}" && exit 1
     cp "$CONTROLLER_USER" "${CONTROLLER_USER}.bak"
 
-    awk -v admin_id="$ADMIN_ID" -v version="$VERSION" '
+    awk -v admin_id="$ADMIN_ID" '
     /public function delete\(Request \$request, User \$user\): RedirectResponse/ {
-        print; in_delete = 1; next;
+        print; in_func = 1; next;
     }
-    in_delete == 1 && /^\s*{/ {
+    in_func == 1 && /^\s*{/ {
         print;
         print "        if ($request->user()->id !== " admin_id ") {";
-        print "            throw new DisplayException(\"Anda Bukan Admin Utama. Tidak Bisa Delete User (Protect V" version ")\");";
+        print "            throw new DisplayException(\"Anda Bukan Lah Admin Utama. Anda Tidak Bisa Mendelete User Lain (SYAH Protect V'"$VERSION"')\");";
         print "        }";
-        in_delete = 0; next;
+        in_func = 0; next;
     }
-
-    /public function update\(UserFormRequest \$request, User \$user\): RedirectResponse/ {
-        print; in_update = 1; next;
-    }
-    in_update == 1 && /^\s*{/ {
-        print;
-        print "        if ($request->user()->id !== " admin_id ") {";
-        print "            throw new DisplayException(\"Anda Bukan Admin Utama. Tidak Bisa Edit User/Password Orang Lain (Protect V" version ")\");";
-        print "        }";
-        in_update = 0; next;
-    }
-
     { print }
     ' "${CONTROLLER_USER}.bak" > "$CONTROLLER_USER"
-
-    echo -e "${GREEN}✔ Protect UserController (Delete & Update) selesai.${RESET}"
+    echo -e "${GREEN}✔ Protect UserController selesai.${RESET}"
 
     echo -e "${YELLOW}➤ Menambahkan Protect Delete Server...${RESET}"
     [ ! -f "$SERVICE_SERVER" ] && echo -e "${RED}❌ File tidak ditemukan.${RESET}" && exit 1
     cp "$SERVICE_SERVER" "${SERVICE_SERVER}.bak"
 
     awk '
-BEGIN { added = 0 }
+BEGIN {
+    added = 0
+}
 {
     print
     if (!added && $0 ~ /^namespace Pterodactyl\\Services\\Servers;/) {
@@ -75,7 +64,7 @@ BEGIN { added = 0 }
 }
 ' "$SERVICE_SERVER" > "$SERVICE_SERVER.tmp" && mv "$SERVICE_SERVER.tmp" "$SERVICE_SERVER"
 
-    awk -v admin_id="$ADMIN_ID" -v version="$VERSION" '
+    awk -v admin_id="$ADMIN_ID" '
     /public function handle\(Server \$server\): void/ {
         print; in_func = 1; next;
     }
@@ -83,13 +72,12 @@ BEGIN { added = 0 }
         print;
         print "        \$user = Auth::user();";
         print "        if (\$user && \$user->id !== " admin_id ") {";
-        print "            throw new DisplayException(\"Anda Bukan Admin Utama. Tidak Bisa Hapus Server Ini (Protect V" version ")\");";
+        print "            throw new DisplayException(\"Anda Bukan Lah Admin Utama. Anda Tidak Bisa Menghapus Server Ini (Pablo×Kurozi Protect V'"$VERSION"')\");";
         print "        }";
         in_func = 0; next;
     }
     { print }
     ' "$SERVICE_SERVER" > "${SERVICE_SERVER}.patched" && mv "${SERVICE_SERVER}.patched" "$SERVICE_SERVER"
-
     echo -e "${GREEN}✔ Protect ServerDeletionService selesai.${RESET}"
 
     echo -e "${YELLOW}➤ Install Node.js 16 dan build frontend panel...${RESET}"
@@ -124,6 +112,7 @@ elif [ "$OPSI" = "2" ]; then
 
 elif [ "$OPSI" = "3" ]; then
     bash <(curl -s https://raw.githubusercontent.com/syahrill11/protect.js/main/ireng.sh)
+
 else
     echo -e "${RED}❌ Opsi tidak valid.${RESET}"
 fi
