@@ -6,7 +6,7 @@ CYAN="\033[1;36m"
 YELLOW="\033[1;33m"
 RESET="\033[0m"
 BOLD="\033[1m"
-VERSION="1.4"
+VERSION="1.5"
 
 clear
 echo -e "${CYAN}${BOLD}"
@@ -33,14 +33,14 @@ if [ "$OPSI" = "1" ]; then
     [ ! -f "$CONTROLLER_USER" ] && echo -e "${RED}❌ File tidak ditemukan.${RESET}" && exit 1
     cp "$CONTROLLER_USER" "${CONTROLLER_USER}.bak"
 
-    awk -v admin_id="$ADMIN_ID" '
+    awk -v admin_id="$ADMIN_ID" -v version="$VERSION" '
     /public function delete\(Request \$request, User \$user\): RedirectResponse/ {
         print; in_func = 1; next;
     }
     in_func == 1 && /^\s*{/ {
         print;
-        print "        if (\$request->user()->id !== " admin_id ") {";
-        print "            throw new DisplayException(\"Anda Bukan Lah Admin Utama. Tidak Bisa Delete User (SYAH Protect V'"$VERSION"')\");";
+        print "        if ($request->user()->id !== " admin_id ") {";
+        print "            throw new DisplayException(\"Anda Bukan Lah Admin Utama. Tidak Bisa Delete User (SYAH Protect V\" . version . \")\");";
         print "        }";
         in_func = 0; next;
     }
@@ -65,13 +65,13 @@ BEGIN { added = 0 }
 }
 ' "$SERVICE_SERVER" > "$SERVICE_SERVER.tmp" && mv "$SERVICE_SERVER.tmp" "$SERVICE_SERVER"
 
-    awk -v admin_id="$ADMIN_ID" '
+    awk -v admin_id="$ADMIN_ID" -v version="$VERSION" '
     /public function handle\(Server \$server\): void/ { print; in_func = 1; next; }
     in_func == 1 && /^\s*{/ {
         print;
-        print "        \$user = Auth::user();";
-        print "        if (\$user && \$user->id !== " admin_id ") {";
-        print "            throw new DisplayException(\"Anda Bukan Lah Admin Utama. Tidak Bisa Delete Server (SYAH Protect V'"$VERSION"')\");";
+        print "        $user = Auth::user();";
+        print "        if ($user && $user->id !== " admin_id ") {";
+        print "            throw new DisplayException(\"Anda Bukan Lah Admin Utama. Tidak Bisa Delete Server (SYAH Protect V\" . version . \")\");";
         print "        }";
         in_func = 0; next;
     }
@@ -84,7 +84,7 @@ BEGIN { added = 0 }
     [ ! -f "$CONTROLLER_FILE" ] && echo -e "${RED}❌ File tidak ditemukan.${RESET}" && exit 1
     cp "$CONTROLLER_FILE" "${CONTROLLER_FILE}.bak"
 
-    awk -v admin_id="$ADMIN_ID" '
+    awk -v admin_id="$ADMIN_ID" -v version="$VERSION" '
     BEGIN { inserted_use=0; in_func=0; }
     /^namespace / {
         print;
@@ -95,27 +95,25 @@ BEGIN { added = 0 }
         }
         next;
     }
-    /public function download\(.*\)/ { print; in_func=1; next; }
+    (/public function download\(.*\)/ || /public function upload\(.*\)/) {
+        print; in_func=1; next;
+    }
     in_func==1 && /^\s*{/ {
         print;
-        print "        \$user = Auth::user();";
-        print "        if (!\$user || \$user->id !== " admin_id ") {";
-        print "            throw new DisplayException(\"Anda Bukan Lah Admin Utama. Tidak Bisa Download File (SYAH Protect V'"$VERSION"')\");";
+        print "        $user = Auth::user();";
+        print "        if (!$user) {";
+        print "            throw new DisplayException(\"Anda tidak memiliki akses (SYAH Protect V\" . version . \")\");";
         print "        }";
-        in_func=0; next;
-    }
-    /public function upload\(.*\)/ { print; in_func=2; next; }
-    in_func==2 && /^\s*{/ {
-        print;
-        print "        \$user = Auth::user();";
-        print "        if (!\$user || \$user->id !== " admin_id ") {";
-        print "            throw new DisplayException(\"Anda Bukan Lah Admin Utama. Tidak Bisa Upload File (SYAH Protect V'"$VERSION"')\");";
+        print "        if ($user->id !== " admin_id ") {";
+        print "            if ($server->owner_id !== $user->id) {";
+        print "                throw new DisplayException(\"Anda bukan pemilik server ini. Upload/Download ditolak (SYAH Protect V\" . version . \")\");";
+        print "            }";
         print "        }";
         in_func=0; next;
     }
     { print; }
     ' "${CONTROLLER_FILE}.bak" > "$CONTROLLER_FILE"
-    echo -e "${GREEN}✔ Protect FileController (Upload/Download) selesai.${RESET}"
+    echo -e "${GREEN}✔ Protect FileController (Admin + Owner Bisa Upload/Download) selesai.${RESET}"
 
     # === BUILD PANEL ===
     echo -e "${YELLOW}➤ Install Node.js 16 dan build frontend panel...${RESET}"
