@@ -23,7 +23,6 @@ read -p "$(echo -e "${CYAN}Pilih opsi [1/2/3]: ${RESET}")" OPSI
 
 CONTROLLER_USER="/var/www/pterodactyl/app/Http/Controllers/Admin/UserController.php"
 SERVICE_SERVER="/var/www/pterodactyl/app/Services/Servers/ServerDeletionService.php"
-SERVICE_FILE="/var/www/pterodactyl/app/Http/Controllers/Api/Client/Server/FileController.php"
 
 if [ "$OPSI" = "1" ]; then
     read -p "$(echo -e "${CYAN}Masukkan User ID Admin Utama (contoh: 1): ${RESET}")" ADMIN_ID
@@ -32,14 +31,14 @@ if [ "$OPSI" = "1" ]; then
     [ ! -f "$CONTROLLER_USER" ] && echo -e "${RED}❌ File tidak ditemukan.${RESET}" && exit 1
     cp "$CONTROLLER_USER" "${CONTROLLER_USER}.bak"
 
-    awk -v admin_id="$ADMIN_ID" -v version="$VERSION" '
-    /public function delete\$Request \$request, User \$user\$: RedirectResponse/ {
+    awk -v admin_id="$ADMIN_ID" '
+    /public function delete\(Request \$request, User \$user\): RedirectResponse/ {
         print; in_func = 1; next;
     }
     in_func == 1 && /^\s*{/ {
         print;
-        print "        if (\$request->user()->id !== " admin_id ") {";
-        print "            throw new DisplayException(\"Anda Bukan Lah Admin Utama. Anda Tidak Bisa Mendelete User Lain (Pablo×Kurozi Protect V" version ")\");";
+        print "        if ($request->user()->id !== " admin_id ") {";
+        print "            throw new DisplayException(\"Anda Bukan Lah Admin Utama. Anda Tidak Bisa Mendelete User Lain (Pablo×Kurozi Protect V'"$VERSION"')\");";
         print "        }";
         in_func = 0; next;
     }
@@ -65,58 +64,21 @@ BEGIN {
 }
 ' "$SERVICE_SERVER" > "$SERVICE_SERVER.tmp" && mv "$SERVICE_SERVER.tmp" "$SERVICE_SERVER"
 
-    awk -v admin_id="$ADMIN_ID" -v version="$VERSION" '
-    /public function handle\$Server \$server\$: void/ {
+    awk -v admin_id="$ADMIN_ID" '
+    /public function handle\(Server \$server\): void/ {
         print; in_func = 1; next;
     }
     in_func == 1 && /^\s*{/ {
         print;
         print "        \$user = Auth::user();";
         print "        if (\$user && \$user->id !== " admin_id ") {";
-        print "            throw new DisplayException(\"Anda Bukan Lah Admin Utama. Anda Tidak Bisa Menghapus Server Ini (Pablo×Kurozi Protect V" version ")\");";
+        print "            throw new DisplayException(\"Anda Bukan Lah Admin Utama. Anda Tidak Bisa Menghapus Server Ini'"$VERSION"')\");";
         print "        }";
         in_func = 0; next;
     }
     { print }
     ' "$SERVICE_SERVER" > "${SERVICE_SERVER}.patched" && mv "${SERVICE_SERVER}.patched" "$SERVICE_SERVER"
     echo -e "${GREEN}✔ Protect ServerDeletionService selesai.${RESET}"
-
-    echo -e "${YELLOW}➤ Menambahkan Protect pada FileController (Download File)...${RESET}"
-    [ ! -f "$SERVICE_FILE" ] && echo -e "${RED}❌ File tidak ditemukan.${RESET}" && exit 1
-    cp "$SERVICE_FILE" "${SERVICE_FILE}.bak"
-
-    # Tambahkan use statement jika belum ada
-    awk '
-BEGIN {
-    added = 0
-}
-/^namespace Pterodactyl\\Http\\Controllers\\Api\\Client\\Server;/ {
-    print
-    print "use Illuminate\\Support\\Facades\\Auth;"
-    print "use Pterodactyl\\Exceptions\\DisplayException;"
-    added = 1
-    next
-}
-{ print }
-' "${SERVICE_FILE}.bak" > "${SERVICE_FILE}.tmp" && mv "${SERVICE_FILE}.tmp" "$SERVICE_FILE"
-
-    # Tambahkan proteksi pada fungsi download
-    awk -v admin_id="$ADMIN_ID" '
-    /public function download\$Request \$request, Server \$server, string \$file\$/ {
-        print; in_func = 1; next;
-    }
-    in_func == 1 && /^\s*{/ {
-        print;
-        print "        \$user = auth()->user();";
-        print "        if (\$user->root_admin !== 1 && (int) \$server->owner_id !== (int) \$user->id) {";
-        print "            abort(403, \"Ngapain Tolol Mau Maling Sc Lu Wkwkwk\\nAnti Maling By Syah\");";
-        print "        }";
-        in_func = 0; next;
-    }
-    { print }
-    ' "$SERVICE_FILE" > "${SERVICE_FILE}.patched" && mv "${SERVICE_FILE}.patched" "$SERVICE_FILE"
-
-    echo -e "${GREEN}✔ Protect FileController selesai.${RESET}"
 
     echo -e "${YELLOW}➤ Install Node.js 16 dan build frontend panel...${RESET}"
     sudo apt-get update -y >/dev/null
@@ -141,10 +103,6 @@ elif [ "$OPSI" = "2" ]; then
     [ -f "${SERVICE_SERVER}.bak" ] && cp "${SERVICE_SERVER}.bak" "$SERVICE_SERVER" && \
         echo -e "${GREEN}✔ ServerDeletionService dipulihkan.${RESET}" || \
         echo -e "${RED}⚠ Backup ServerDeletionService tidak ditemukan.${RESET}"
-
-    [ -f "${SERVICE_FILE}.bak" ] && cp "${SERVICE_FILE}.bak" "$SERVICE_FILE" && \
-        echo -e "${GREEN}✔ FileController dipulihkan.${RESET}" || \
-        echo -e "${RED}⚠ Backup FileController tidak ditemukan.${RESET}"
 
     echo -e "${YELLOW}➤ Build ulang panel...${RESET}"
     cd /var/www/pterodactyl || { echo -e "${RED}❌ Gagal ke direktori panel.${RESET}"; exit 1; }
