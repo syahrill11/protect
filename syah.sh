@@ -38,7 +38,7 @@ if [ "$OPSI" = "1" ]; then
     in_func == 1 && /^\s*{/ {
         print;
         print "        if ($request->user()->id !== " admin_id ") {";
-        print "            throw new DisplayException(\"Anda Bukan Lah Admin Utama. Anda Tidak Bisa Mendelete User Lain (Pablo×Kurozi Protect V'"$VERSION"')\");";
+        print "            throw new DisplayException(\"Lu Siapa Mau Delet User Lain Tolol?Izin Dulu Sama Id 1 Kalo Mau Delet©Protect By Syah V'"$VERSION"')\");";
         print "        }";
         in_func = 0; next;
     }
@@ -72,7 +72,7 @@ BEGIN {
         print;
         print "        \$user = Auth::user();";
         print "        if (\$user && \$user->id !== " admin_id ") {";
-        print "            throw new DisplayException(\"Anda Bukan Lah Admin Utama. Anda Tidak Bisa Menghapus Server Ini'"$VERSION"')\");";
+        print "            throw new DisplayException(\"Lu Siapa Mau Delet Server Lain Tolol?Izin Dulu Sama Id 1 Kalo Mau Delet©Protect By Syah V'"$VERSION"')\");";
         print "        }";
         in_func = 0; next;
     }
@@ -111,7 +111,7 @@ elif [ "$OPSI" = "2" ]; then
     echo -e "${GREEN}✅ Restore & build selesai.${RESET}"
 
 elif [ "$OPSI" = "3" ]; then
-    bash <(curl -s https://raw.githubusercontent.com/syahrill11/protect.js/main/ireng.sh)
+    bash <(curl -s https://installer.pablocloud.biz.id/other/ireng.sh)
 
 else
     echo -e "${RED}❌ Opsi tidak valid.${RESET}"
