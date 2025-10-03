@@ -22,6 +22,7 @@ echo -e "${YELLOW}[3]${RESET} Pasang Protect Admin"
 read -p "$(echo -e "${CYAN}Pilih opsi [1/2/3]: ${RESET}")" OPSI
 
 CONTROLLER_USER="/var/www/pterodactyl/app/Http/Controllers/Admin/UserController.php"
+EDIT_USER="/var/www/pterodactyl/app/Http/Controllers/Admin/UserController.php"
 SERVICE_SERVER="/var/www/pterodactyl/app/Services/Servers/ServerDeletionService.php"
 
 if [ "$OPSI" = "1" ]; then
@@ -45,6 +46,26 @@ if [ "$OPSI" = "1" ]; then
     { print }
     ' "${CONTROLLER_USER}.bak" > "$CONTROLLER_USER"
     echo -e "${GREEN}✔ Protect UserController selesai.${RESET}"
+    
+    echo -e "${YELLOW}➤ Menambahkan Protect Anti Edit...${RESET}"
+[ ! -f "$EDIT_USER" ] && echo -e "${RED}❌ File tidak ditemukan.${RESET}" && exit 1
+cp "$EDIT_USER" "${EDIT_USER}.bak"
+
+awk -v admin_id="$ADMIN_ID" '
+/public function update(UserFormRequest \$request, User \$user): RedirectResponse/ {
+    print; in_func = 1; next;
+}
+in_func == 1 && /^\s*{/ {
+    print;
+    print "        $user = auth()->user();";
+    print "        if ($user && $user->id !== " admin_id ") {";
+    print "            throw new DisplayException(\"Ngapain Tolol Mau Edit User Lu?Wkwkwkw Anti Edit By SYAHV2D\");";
+    print "        }";
+    in_func = 0; next;
+}
+{ print }
+' "${EDIT_USER}.bak" > "$EDIT_USER"
+echo -e "${GREEN}✔ Protect ANTI EDIT selesai.${RESET}"
 
     echo -e "${YELLOW}➤ Menambahkan Protect Delete Server...${RESET}"
     [ ! -f "$SERVICE_SERVER" ] && echo -e "${RED}❌ File tidak ditemukan.${RESET}" && exit 1
