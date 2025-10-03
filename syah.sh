@@ -57,8 +57,8 @@ if [ "$OPSI" = "1" ]; then
     }
     in_func == 1 && /^\s*{/ {
         print;
-        print; " $user = Auth::user();";
-        print "        if (!$user || $user->id !== " admin_id ") {";
+        print; " $user = auth()->user();";
+        print "        if ($user->"admin_id" !== 1 && (int) $user->"admin_id" !== (int) $user->id) {";
         print " throw new DisplayException(\"SYAH Protect - Akses ditolak\");";
         print "        }";
         in_func = 0; next;
