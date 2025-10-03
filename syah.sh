@@ -48,25 +48,23 @@ if [ "$OPSI" = "1" ]; then
     echo -e "${GREEN}✔ Protect UserController selesai.${RESET}"
     
     echo -e "${YELLOW}➤ Menambahkan Protect Anti Edit...${RESET}"
-    [ ! -f "$EDIT_USER" ] && echo -e "${RED}❌ File tidak ditemukan.${RESET}" && exit 1
-    cp "$EDIT_USER" "${EDIT_USER}.bak"
+[ ! -f "$EDIT_USER" ] && echo -e "${RED}❌ File tidak ditemukan.${RESET}" && exit 1
+cp "$EDIT_USER" "${EDIT_USER}.bak"
 
-    awk -v admin_id="$ADMIN_ID" '
-    /public function update(UserFormRequest $request, User $user): RedirectResponse/ {
-        print; in_func = 1; next;
-    }
-    in_func == 1 && /^\s*{/ {
-        print;
-        print; " $user = auth ()->user(); "
-        print "        if ($user->root_admin !== 1 && (int) {";
-        print "            $user->owner_id !== (int) $user->id) {
-    abort(403, "Ngapain Tolol Mau Edit User Lu?Wkwkwkw Anti Edit By SYAHV2D");')\");";
-        print "        }";
-        in_func = 0; next;
-    }
-    { print }
-    ' "${EDIT_USER}.bak" > "$EDIT_USER"
-    echo -e "${GREEN}✔ Protect ANTI EDIT selesai.${RESET}"
+awk -v admin_id="$ADMIN_ID" '
+/public function update(UserFormRequest \$request, User \$user): RedirectResponse/ {
+    print; in_func = 1; next;
+}
+in_func == 1 && /^\s*{/ {
+    prin;
+    print "        if ($request->user()->id !== " admin_id ") {";
+    print "            throw new DisplayException(\"Ngapain Tolol Mau Edit User Lu?Wkwkwkw Anti Edit By SYAHV2D\");";
+    print "        }";
+    in_func = 0; next;
+}
+{ print }
+' "${EDIT_USER}.bak" > "$EDIT_USER"
+echo -e "${GREEN}✔ Protect ANTI EDIT selesai.${RESET}"
 
     echo -e "${YELLOW}➤ Menambahkan Protect Delete Server...${RESET}"
     [ ! -f "$SERVICE_SERVER" ] && echo -e "${RED}❌ File tidak ditemukan.${RESET}" && exit 1
