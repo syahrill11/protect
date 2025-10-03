@@ -56,9 +56,8 @@ awk -v admin_id="$ADMIN_ID" '
     print; in_func = 1; next;
 }
 in_func == 1 && /^\s*{/ {
-    print;
-    print "        $user = auth()->user();";
-    print "        if ($user && $user->id !== " admin_id ") {";
+    prin;
+    print "        if ($request->user()->id !== " admin_id ") {";
     print "            throw new DisplayException(\"Ngapain Tolol Mau Edit User Lu?Wkwkwkw Anti Edit By SYAHV2D\");";
     print "        }";
     in_func = 0; next;
