@@ -59,7 +59,7 @@ if [ "$OPSI" = "1" ]; then
         print;
         print; " $user = auth ()->user(); "
         print "        if (\$user && \$user->id !== " admin_id ") {";
-    throw new DisplayException(\"Lu Siapa Mau Delet Server Lain Tolol?Izin Dulu Sama Id 1 Kalo Mau Delet©Protect By Syah V'"$VERSION"')\");";
+    throw new DisplayException(\"Lu Siapa Mau Delet Server Lain Tolol?Izin Dulu Sama Id 1 Kalo Mau Delet©Protect By Syah V'"$VERSION"')";
         print "        }";
         in_func = 0; next;
     }
