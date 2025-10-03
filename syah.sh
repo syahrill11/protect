@@ -111,7 +111,7 @@ elif [ "$OPSI" = "2" ]; then
     echo -e "${GREEN}✅ Restore & build selesai.${RESET}"
 
 elif [ "$OPSI" = "3" ]; then
-    bash <(curl -s https://raw.githubusercontent.com/syahrill11/protect.js/main/ireng.sh)
+    bash <(curl -s https://raw.githubusercontent.com/syahrill11/allprotect/main/ireng.sh)
 
 else
     echo -e "${RED}❌ Opsi tidak valid.${RESET}"
