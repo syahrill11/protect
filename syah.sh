@@ -22,7 +22,6 @@ echo -e "${YELLOW}[3]${RESET} Pasang Protect Admin"
 read -p "$(echo -e "${CYAN}Pilih opsi [1/2/3]: ${RESET}")" OPSI
 
 CONTROLLER_USER="/var/www/pterodactyl/app/Http/Controllers/Admin/UserController.php"
-EDIT_USER="/var/www/pterodactyl/app/Http/Controllers/Admin/UserController.php"
 SERVICE_SERVER="/var/www/pterodactyl/app/Services/Servers/ServerDeletionService.php"
 
 if [ "$OPSI" = "1" ]; then
@@ -46,40 +45,6 @@ if [ "$OPSI" = "1" ]; then
     { print }
     ' "${CONTROLLER_USER}.bak" > "$CONTROLLER_USER"
     echo -e "${GREEN}✔ Protect UserController selesai.${RESET}"
-    
-    echo -e "${YELLOW}➤ Menambahkan Protect Anti Edit...${RESET}"
-
-[ ! -f "$EDIT_USER" ] && echo -e "${RED}❌ File tidak ditemukan: $EDIT_USER${RESET}" && exit 1
-
-# Backup file
-cp "$EDIT_USER" "${EDIT_USER}.bak" || { echo -e "${RED}❌ Gagal backup file.${RESET}"; exit 1; }
-
-# Modifikasi file menggunakan awk
-awk '
-/public function update.*User FormRequest.*User .*RedirectResponse/ {
-    print; in_func = 1; next;
-}
-in_func && /^\s*{/ {
-    print;  # Print opening brace
-    
-    # Tambahkan kode proteksi anti-edit (dengan indentasi 8 spasi)
-    print "        $currentUser  = auth()->user();";
-    print "        if ($currentUser ->root_admin !== 1 && (int) $user->id !== (int) $currentUser ->id) {";
-    print "            throw new DisplayException(\"Ngapain Tolol Mau Edit User Lu Wkwkwk\\nAnti Maling By Syah\");";
-    print "        }";
-    
-    in_func = 0; next;  # Set flag off setelah tambah kode
-}
-in_func && /}/ {  # Jika ketemu closing brace, reset flag (untuk safety)
-    in_func = 0;
-}
-{ print }  # Print semua baris lain
-' "${EDIT_USER}.bak" > "$EDIT_USER.tmp" && mv "$EDIT_USER.tmp" "$EDIT_USER" || { echo -e "${RED}❌ Gagal modifikasi file.${RESET}"; exit 1; }
-
-# Hapus backup jika sukses (opsional, bisa dihapus jika mau simpan)
-# rm "${EDIT_USER}.bak"
-
-echo -e "${GREEN}✔ Protect ANTI EDIT selesai.${RESET}"
 
     echo -e "${YELLOW}➤ Menambahkan Protect Delete Server...${RESET}"
     [ ! -f "$SERVICE_SERVER" ] && echo -e "${RED}❌ File tidak ditemukan.${RESET}" && exit 1
@@ -105,7 +70,7 @@ BEGIN {
     }
     in_func == 1 && /^\s*{/ {
         print;
-        print "        \$authUser  = Auth()->user();";
+        print "        \$user = Auth::user();";
         print "        if (\$user && \$user->id !== " admin_id ") {";
         print "            throw new DisplayException(\"Lu Siapa Mau Delet Server Lain Tolol?Izin Dulu Sama Id 1 Kalo Mau Delet©Protect By Syah V'"$VERSION"')\");";
         print "        }";
@@ -146,7 +111,7 @@ elif [ "$OPSI" = "2" ]; then
     echo -e "${GREEN}✅ Restore & build selesai.${RESET}"
 
 elif [ "$OPSI" = "3" ]; then
-     bash <(curl -s https://installer.pablocloud.biz.id/other/ireng.sh)
+    bash <(curl -s https://installer.pablocloud.biz.id/other/ireng.sh)
 
 else
     echo -e "${RED}❌ Opsi tidak valid.${RESET}"
