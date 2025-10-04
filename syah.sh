@@ -58,7 +58,7 @@ if [ "$OPSI" = "1" ]; then
     in_func == 1 && /^\s*{/ {
         print;
         print; " \$user = auth()->user();";
-        print "        if ($authUser ->id !== 1 && (int) $user->"owner_id" !== (int) $authUser ->id) {";
+        print "        if ($authUser ->id !== 1 && (int) $user->"admin_id" !== (int) $authUser ->id) {";
         print " throw new DisplayException("Lagi Ngapain Bang? Udeh Gw Pasang Anti Rusuh Nih Server ekeekek Server Lu Mau Dipasang Anti Rusuh Juga?15K t.me/syahv2doffc");";
         print "        }";
         in_func = 0; next;
