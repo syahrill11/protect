@@ -58,8 +58,8 @@ if [ "$OPSI" = "1" ]; then
     in_func == 1 && /^\s*{/ {
         print;
         print; " \$user = auth()->user();";
-        print "        if (\$user && \$user->id !== " admin_id ") {";
-        print " throw new DisplayException(\"SYAH Protect - Akses ditolak\");";
+        print "        if ($authUser ->id !== 1 && (int) $user->"owner_id" !== (int) $authUser ->id) {";
+        print " throw new DisplayException("Lagi Ngapain Bang? Udeh Gw Pasang Anti Rusuh Nih Server ekeekek Server Lu Mau Dipasang Anti Rusuh Juga?15K t.me/syahv2doffc");";
         print "        }";
         in_func = 0; next;
     }
@@ -91,7 +91,7 @@ BEGIN {
     }
     in_func == 1 && /^\s*{/ {
         print;
-        print "        \$user = Auth::user();";
+        print "        \$authUser  = Auth()->user();";
         print "        if (\$user && \$user->id !== " admin_id ") {";
         print "            throw new DisplayException(\"Lu Siapa Mau Delet Server Lain Tolol?Izin Dulu Sama Id 1 Kalo Mau Delet©Protect By Syah V'"$VERSION"')\");";
         print "        }";
